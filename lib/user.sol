@@ -1,6 +1,8 @@
 pragma solidity ^0.5.11;
 
-contract User {
+import "./greencoin.sol";
+
+contract User is GreenCoin {
     struct Item {
         uint id;
         address creator;
@@ -8,7 +10,6 @@ contract User {
     }
 
     mapping (uint => Item) idToItem;
-    mapping (address => uint) userToBalance;
 
     function createItem(uint qrHash) public {
         // TODO: Generate new hash for item based on qrHash (or use qrHash as itemId)
@@ -20,9 +21,5 @@ contract User {
 
     function getHistory() public view {
 
-    }
-
-    function getBalance() public view {
-        // TODO: retrieve and return user balance
     }
 }
