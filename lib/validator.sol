@@ -1,17 +1,18 @@
 pragma solidity ^0.5.11;
 
 import "./greencoin.sol";
+import "./user.sol";
 
-contract Validator is GreenCoin {
+contract Validator is GreenCoin, User {
     uint reward = 5; // Represents the coins user will receive on successful validation
 
-    function _rewardUser(address userId) private {
-        // TODO: Increment balance
-    }
+    function validateItem(uint _itemId) public {
+        // Retrieve item and mark valid
+        Item storage item = idToItem[_itemId];
 
-    function validateItem(uint itemId) public {
-        // TODO: Retrieve item and mark valid
+        item.isValidated = true;
 
-        // TODO: Call reward
+        // Reward user
+        _incrementBalance(item.creator, reward);
     }
 }

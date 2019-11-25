@@ -14,9 +14,8 @@ contract User is GreenCoin {
     function createItem(uint qrHash) public {
         // TODO: Generate new hash for item based on qrHash (or use qrHash as itemId)
 
-        // TODO: Create item based on new hash
-
-        // TODO: Store item in itemToUser mapping
+        // Create item based on new hash and map to user
+        idToItem[qrHash] = Item(qrHash, msg.sender, false);
     }
 
     function getHistory() public view {
