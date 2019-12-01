@@ -1,13 +1,15 @@
-pragma solidity ^0.5.8;
+pragma solidity ^0.5.11;
 
 contract GreenCoin {
     mapping (address => uint) userToBalance;
 
-    function _incrementBalance(address userId, uint amount) private {
-        // TODO: Increment balance of userId by amount
+    function _incrementBalance(address _userId, uint _amount) internal {
+        // Increment balance of userId by amount
+        userToBalance[_userId] += _amount;
     }
 
-    function getBalance() public view {
-        // TODO: Return green coins for user
+    function getBalance() public view returns (uint) {
+        // Return green coins for user
+        return userToBalance[msg.sender];
     }
 }
