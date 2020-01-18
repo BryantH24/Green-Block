@@ -4,7 +4,7 @@ contract GreenCoin {
     mapping (address => uint) userToBalance;
 
     function _incrementBalance(address _userId, uint _amount) internal {
-        // Increment balance of userId by amount
+        // Increment balance of userId by given amount
         userToBalance[_userId] += _amount;
     }
 
