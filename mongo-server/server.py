@@ -6,8 +6,9 @@ from pywallet import wallet
 from web3 import Web3
 from web3.auto import w3
 
+from flask import Flask
 
-cluster = MongoClient("mongodb+srv://GreenBlockServer:@cluster0-tifxv.gcp.mongodb.net/test?retryWrites=true&w=majority")
+cluster = MongoClient("mongodb+srv://GreenBlockServer:GreenestBlock123!@cluster0-tifxv.gcp.mongodb.net/test?retryWrites=true&w=majority")
 db = cluster["GreenBlock"]
 collection = db["UserInfo"]
 
