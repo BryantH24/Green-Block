@@ -1,4 +1,4 @@
-FROM amazon/aws-eb-python:3.4.2-onbuild-3.5.1
+FROM ubuntu:16.04
 
 RUN apt-get update -y && \
     apt-get install -y python-pip python-dev && \
