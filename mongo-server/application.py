@@ -1,34 +1,82 @@
+import pymongo
+from pymongo import MongoClient
+
+from pywallet import wallet
+
+from web3 import Web3
+from web3.auto import w3
+
 from flask import Flask
+from flask import request
 
-# print a nice greeting.
-def say_hello(username = "World"):
-    return '<p>Hello %s!</p>\n' % username
+from time import gmtime, strftime
 
-# some bits of text for the page.
-header_text = '''
-    <html>\n<head> <title>EB Flask Test</title> </head>\n<body>'''
-instructions = '''
-    <p><em>Hint</em>: This is a RESTful web service! Append a username
-    to the URL (for example: <code>/Thelonious</code>) to say hello to
-    someone specific.</p>\n'''
-home_link = '<p><a href="/">Back</a></p>\n'
-footer_text = '</body>\n</html>'
+cluster = MongoClient("mongodb+srv://GreenBlockServer:GreenestBlock123!@cluster0-tifxv.gcp.mongodb.net/test?retryWrites=true&w=majority")
+db = cluster["GreenBlock"]
+logInDatabase = db["UserInfo"]
+transactionDatabase = db["transactionHistory"]
 
-# EB looks for an 'application' callable by default.
-application = Flask(__name__)
+ABIlist = ["sampleABI1", "sampleABI2"]
 
-# add a rule for the index page.
-application.add_url_rule('/', 'index', (lambda: header_text +
-    say_hello() + instructions + footer_text))
 
-# add a rule when the page is accessed with a name appended to the site
-# URL.
-application.add_url_rule('/<username>', 'hello', (lambda username:
-    header_text + say_hello(username) + home_link + footer_text))
+oauthToken = "sampleOauth5"
+
+app = Flask(__name__)
+
+def logIn(oauthToken):
+    users = logInDatabase.find({"OAuth" : oauthToken})
+    for user in users:
+        mnemonic = user["mnemonic"]
+        print(mnemonic) #replace with blockchain stuff (brownie?)
+        return mnemonic
+# @app.route('/login/<oauthToken>')
+
+@app.route('/login', methods=['POST'])
+def createNewUser():
+    #check to see if account from oauthToken is already created
+    oauthJson = request.get_json()
+    oauthToken = oauthJson["oauthToken"]
+
+    users = logInDatabase.find({"OAuth" : oauthToken})
+    for user in users:
+        if user != "":
+            mnenomic = logIn(oauthToken)
+            return mnenomic
+        else:
+            mnemonic = wallet.generate_mnemonic()
+            post = {"_id" : logInDatabase.count_documents({}) + 1 , "OAuth": oauthToken, "mnemonic": mnemonic, "userStatus": "User"}
+            w = wallet.create_wallet(network="ETH", seed=mnemonic, children=1)
+            logInDatabase.insert_one(post)
+            return True
+
+
+#use web3py
+@app.route('/createItem', methods=['POST'])
+def createItem():
+    oauthJson = request.get_json()
+    oauthToken = oauthJson["oauthToken"]
+    qrHash = oauthJson["qrHash"]
+    mnemonic = logIn(oauthToken)
+    w = wallet.create_wallet(network="ETH", seed=mnemonic, children=1)
+    # GreenBlockCreateItem = w3.eth.contract(address=w['address'], abi=ABIlist[0])
+    # return GreenBlockCreateItem.caller.createItem(qrHash)
+
+    post = {"_id" : transactionDatabase.count_documents({}) + 1 , "OAuth": oauthToken, "mnemonic": mnemonic, "qrHash": qrHash, "time" : strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())}
+    transactionDatabase.insert_one(post)
+    return "logged on database"
+
+@app.route('/getHistory', methods=['POST'])
+def getHistory(oauthToken):
+    oauthJson = request.get_json()
+    oauthToken = oauthJson["oauthtoken"]
+    mnemonic = logIn(oauthToken)
+    w = wallet.create_wallet(network="ETH", seed=mnemonic, children=1)
+    GreenBlockCreateItem = w3.eth.contract(address=w['address'], abi=ABIlist[1])
+    return GreenBlockCreateItem.caller.getHistory()
 
 # run the app.
 if __name__ == "__main__":
     # Setting debug to True enables debug output. This line should be
     # removed before deploying a production app.
-    application.debug = True
-    application.run(host='0.0.0.0', port=5000)
+    app.debug = True
+    app.run()
