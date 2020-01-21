@@ -14,29 +14,33 @@ contract User is GreenCoin {
 
     Item[] internal items;
 
-    function createItem(string memory _qrHash) public {
+    function createItem(string memory _qrHash, address _creator) public {
         // Generate new random id for item based on qrHash
         uint _itemId = uint(keccak256(abi.encodePacked(_qrHash)));
 
         // Create item based on new hash
-        uint _id = items.push(Item(_itemId, msg.sender, false)) - 1;
+        uint _id = items.push(Item(_itemId, _creator, false)) - 1;
 
         // Increment user item count
-        userItemCount[msg.sender]++;
+        userItemCount[_creator]++;
 
         // Map id to item
         idToItem[_itemId] = items[_id];
     }
 
-    function getHistory() external view returns(uint[] memory, bool[] memory) {
+    function markValid(uint _itemId) public {
+        idToItem[_itemId].isValidated = true;
+    }
+
+    function getHistory(address _userId) external view returns(uint[] memory, bool[] memory) {
         // NOTE: solidity does not support returning array of structs. Using workaround
-        uint[] memory _ids = new uint[](userItemCount[msg.sender]);
-        bool[] memory _status = new bool[](userItemCount[msg.sender]);
+        uint[] memory _ids = new uint[](userItemCount[_userId]);
+        bool[] memory _status = new bool[](userItemCount[_userId]);
 
         uint counter = 0;
 
         for (uint i = 0; i < items.length; i++) {
-            if (items[i].creator == msg.sender) {
+            if (items[i].creator == _userId) {
                 _ids[counter] = items[i].id;
                 _status[counter] = items[i].isValidated;
 

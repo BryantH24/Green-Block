@@ -11,5 +11,5 @@ module.exports = function(deployer) {
         // Storage contract
         .then(() => deployer.deploy(User, GreenCoin.address))
         .then(() => User.deployed())
-        .then(() => deployer.deploy(Validator, User.address));
+        .then(() => deployer.deploy(Validator, GreenCoin.address, User.address));
 };

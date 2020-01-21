@@ -6,16 +6,27 @@ import "./user.sol";
 contract Validator is GreenCoin, User {
     uint reward = 5; // Represents the coins user will receive on successful validation
 
+    GreenCoin GCInstance;
+    User UInstance;
+
+    constructor(address _gc, address _u) public {
+        GCInstance = GreenCoin(_gc);
+        UInstance = User(_u);
+    }
+
     function validateItem(string memory _qrHash) public {
-        // Generate new random id for item based on qrHash
+        // Generate same item id based on qrHash
         uint _itemId = uint(keccak256(abi.encodePacked(_qrHash)));
 
         // Retrieve item and mark valid
-        Item storage item = idToItem[_itemId];
+        (, address _creator, bool _validState) = UInstance.idToItem(_itemId);
 
-        item.isValidated = true;
+        if (_validState == false) {
+            // Mark item as validated
+            UInstance.markValid(_itemId);
 
-        // Reward user
-        _incrementBalance(item.creator, reward);
+            // Reward user
+            GCInstance.incrementBalance(_creator, reward);
+        }
     }
 }

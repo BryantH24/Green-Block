@@ -15,9 +15,7 @@ contract('User', (accounts) => {
 
         result3 = await userInstance.idToItem.call('35264242174310653739930584824650794736281833835849161548889533775774637086175')
 
-        history = await userInstance.getHistory();
-
-        console.log(history);
+        history = await userInstance.getHistory(user1Id);
 
         itemIds = history['0']
         itemValidStats = history['1']
