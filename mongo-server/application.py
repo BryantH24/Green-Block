@@ -18,7 +18,7 @@ transactionDatabase = db["transactionHistory"]
 ABI = json.load(open("Validator.json", "r"))['abi']
 
 contractAddress = Web3.toChecksumAddress("0x41F5a83AA42B86a6a3da525A96D91a95E7e82c94")
-##need to add userAddress 
+##need to add userAddress
 userAddress = ""
 privateKey = open("privateKey.txt")
 
@@ -68,7 +68,7 @@ def createItem():
     qrHash = oauthJson["qrHash"]
     mnemonic = logIn(oauthToken)
     # w = wallet.create_wallet(network="ETH", seed=mnemonic, children=1)
-    GreenBlockInstance = w3.eth.contract(address=contractAddress, abi=ABI)
+    #GreenBlockInstance = w3.eth.contract(address=contractAddress, abi=ABI)
 
     post = {"_id" : transactionDatabase.count_documents({}) + 1 , "OAuth": oauthToken, "mnemonic": mnemonic, "qrHash": qrHash, "time" : strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())}
     transactionDatabase.insert_one(post)
@@ -80,7 +80,7 @@ def createItem():
 
 @app.route('/getHistory', methods=['POST'])
 def getHistory():
-    global GreenBlockInstance
+    #global GreenBlockInstance
 
     oauthJson = request.get_json()
     oauthToken = oauthJson["oauthtoken"]
@@ -100,7 +100,7 @@ def getHistory():
 
 @app.route('/getBalance', methods=['POST'])
 def getBalance():
-    global GreenBlockInstance
+    #global GreenBlockInstance
 
     oauthJson = request.get_json()
     oauthToken = oauthJson["oauthtoken"]
