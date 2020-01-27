@@ -10,7 +10,6 @@ from web3 import Web3, HTTPProvider
 
 import config
 
-print(config.MONGO_SERVER)
 
 ##w["xprivate_key"] is the private key for the created wallet
 mongoUrl = "mongodb+srv://{user}:{password}@{server}/test?retryWrites=true&w=majority".format(
@@ -52,18 +51,23 @@ def createNewUser():
         userArr.append(user)
         if user != "":
             mnenomic = logIn(oauthToken)
-            unconvertedJson = {
-            "status" : "Logged In"
-            }
-            return json.dumps(unconvertedJson)
+
+            return jsonify({ "status" : "Logged In" }), 200
+
     mnemonic = wallet.generate_mnemonic()
-    post = {"_id" : logInDatabase.count_documents({}) + 1 , "OAuth": oauthToken, "mnemonic": mnemonic, "userStatus": "User"}
-    w = wallet.create_wallet(network="ETH", seed=mnemonic, children=1)
-    logInDatabase.insert_one(post)
-    unconvertedJson = {
-    "status" : "Created New User"
+
+    post = {
+        "_id" : logInDatabase.count_documents({}) + 1 ,
+        "OAuth": oauthToken,
+        "mnemonic": mnemonic,
+        "userStatus": "User"
     }
-    return json.dumps(unconvertedJson)
+
+    w = wallet.create_wallet(network="ETH", seed=mnemonic, children=1)
+
+    logInDatabase.insert_one(post)
+
+    return jsonify({ "status" : "Created New User" }), 201
 
 
 #web3py contract calls
@@ -99,12 +103,10 @@ def createItem():
 
     txId = w3.eth.sendRawTransaction(signedCreateItem.rawTransaction).hex()
 
-    return jsonify({'transactionId': str(txId)}), 200
+    return jsonify({ 'transactionId': str(txId) }), 201
 
 @app.route('/getHistory', methods=['POST'])
 def getHistory():
-    #global GreenBlockInstance
-
     oauthJson = request.get_json()
     oauthToken = oauthJson["oauthtoken"]
     mnemonic = logIn(oauthToken)
@@ -119,12 +121,10 @@ def getHistory():
 
     itemIds, itemStates = GreenBlockInstance.caller.getHistory(userAddress)
 
-    return jsonify({'items': itemIds, 'states': itemStates}), 200
+    return jsonify({ 'items': itemIds, 'states': itemStates }), 200
 
 @app.route('/getBalance', methods=['POST'])
 def getBalance():
-    #global GreenBlockInstance
-
     oauthJson = request.get_json()
     oauthToken = oauthJson["oauthtoken"]
     mnemonic = logIn(oauthToken)
@@ -135,12 +135,13 @@ def getBalance():
 
     balance = GreenBlockInstance.caller.getBalance(userAddress)
 
-    return jsonify({'balance': balance}), 200
+    return jsonify({ 'balance': balance }), 200
 
 @app.route('/validateItem', methods=['POST'])
 def validateItem():
     oauthJson = request.get_json()
     oauthToken = oauthJson["oauthtoken"]
+    qrHash = oauthJson["qrhash"]
     mnemonic = logIn(oauthToken)
     
     w = wallet.create_wallet(network="ETH", seed=mnemonic, children=1)
@@ -156,7 +157,7 @@ def validateItem():
 
     txId = w3.eth.sendRawTransaction(signedValidateItem.rawTransaction).hex()
 
-    return jsonify({'transactionId': str(txId)}), 200
+    return jsonify({ 'transactionId': str(txId) }), 201
 
 @app.route("/")
 def home():
