@@ -10,7 +10,7 @@ from web3 import Web3, HTTPProvider
 
 
 ##w["xprivate_key"] is the private key for the created wallet
-cluster = MongoClient("mongodb+srv://GreenBlockServer:@cluster0-tifxv.gcp.mongodb.net/test?retryWrites=true&w=majority")
+cluster = MongoClient("mongodb+srv://GreenBlockServer:GreenestBlock123!@cluster0-tifxv.gcp.mongodb.net/test?retryWrites=true&w=majority")
 db = cluster["GreenBlock"]
 logInDatabase = db["UserInfo"]
 transactionDatabase = db["transactionHistory"]
@@ -18,6 +18,9 @@ transactionDatabase = db["transactionHistory"]
 ABI = json.load(open("Validator.json", "r"))['abi']
 
 contractAddress = Web3.toChecksumAddress("0x41F5a83AA42B86a6a3da525A96D91a95E7e82c94")
+##need to add userAddress 
+userAddress = ""
+privateKey = open("privateKey.txt")
 
 oauthToken = "sampleOauth5"
 w3 = Web3(HTTPProvider("https://ropsten.infura.io/v3/8f534b2f394a48a68f99f56dd61db9b3"))
@@ -64,14 +67,15 @@ def createItem():
     oauthToken = oauthJson["oauthToken"]
     qrHash = oauthJson["qrHash"]
     mnemonic = logIn(oauthToken)
-    w = wallet.create_wallet(network="ETH", seed=mnemonic, children=1)
-    GreenBlockCreateItem = w3.eth.contract(address=contractAddress, abi=ABI)
+    # w = wallet.create_wallet(network="ETH", seed=mnemonic, children=1)
+    GreenBlockInstance = w3.eth.contract(address=contractAddress, abi=ABI)
+
     post = {"_id" : transactionDatabase.count_documents({}) + 1 , "OAuth": oauthToken, "mnemonic": mnemonic, "qrHash": qrHash, "time" : strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())}
     transactionDatabase.insert_one(post)
 
-    createItemTransaction = GreenBlockCreateItem.functions.createItem(qrHash, Web3.toChecksumAddress(w["address"])).buildTransaction({'chainId': 1,'gas': 100000,'gasPrice': GreenBlockCreateItem.functions.createItem(qrHash, Web3.toChecksumAddress(w["address"])).estimateGas(),'nonce': 0})
+    createItemTransaction = GreenBlockInstance.functions.createItem(qrHash, userAddress).buildTransaction({'chainId': 1,'gas': 100000,'gasPrice': GreenBlockCreateItem.functions.createItem(qrHash, userAddress).estimateGas(),'nonce': 0})
 
-    signedCreateItem = w3.eth.account.sign_transaction(createItemTransaction, private_key=w["xprivate_key"])
+    signedCreateItem = w3.eth.account.sign_transaction(createItemTransaction, private_key=privateKey)
     return w3.eth.sendRawTransaction(signedCreateItem.rawTransaction)
 
 @app.route('/getHistory', methods=['POST'])
@@ -85,7 +89,7 @@ def getHistory():
     print(mnemonic)
 
     w = wallet.create_wallet(network="ETH", seed=mnemonic, children=1)
-    
+
     print(w)
 
     userAddress = Web3.toChecksumAddress(w['address'])
@@ -115,11 +119,11 @@ def validateItem():
     oauthJson = request.get_json()
     oauthToken = oauthJson["oauthtoken"]
     mnemonic = logIn(oauthToken)
-    w = wallet.create_wallet(network="ETH", seed=mnemonic, children=1)
+    # w = wallet.create_wallet(network="ETH", seed=mnemonic, children=1)
 
-    validateItemTransaction = GreenBlockValidateItem.functions.validateItem(qrHash).buildTransaction({'chainId': 1,'gas': 100000,'gasPrice': GreenBlockValidateItem.functions.validateItem(qrHash).estimateGas(),'nonce': 0})
+    validateItemTransaction = GreenBlockInstance.functions.validateItem(qrHash).buildTransaction({'chainId': 1,'gas': 100000,'gasPrice': GreenBlockInstance.functions.validateItem(qrHash, userAddress).estimateGas(),'nonce': 0})
 
-    signedValidateItem = w3.eth.account.sign_transaction(validateItemTransaction, private_key=w["xprivate_key"])
+    signedValidateItem = w3.eth.account.sign_transaction(validateItemTransaction, private_key=privateKey)
     return w3.eth.sendRawTransaction(signedValidateItem.rawTransaction)
 
 @app.route("/")
@@ -132,4 +136,3 @@ if __name__ == "__main__":
     # removed before deploying a production app.
     app.debug = True
     app.run(host = '0.0.0.0', port = 5000)
-
