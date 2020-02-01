@@ -52,7 +52,7 @@ def createNewUser():
         if user != "":
             mnenomic = logIn(oauthToken)
 
-            return jsonify({ "status" : "Logged In" }), 200
+            return jsonify({ "status" : "Logged In",  "userStatus" : user["userStatus"]}), 200
 
     mnemonic = wallet.generate_mnemonic()
 
@@ -77,7 +77,7 @@ def createItem():
     oauthToken = oauthJson["oauthtoken"]
     qrHash = oauthJson["qrhash"]
     mnemonic = logIn(oauthToken)
-    
+
     w = wallet.create_wallet(network="ETH", seed=mnemonic, children=1)
 
     userAddress = Web3.toChecksumAddress(w['address'])
@@ -89,7 +89,7 @@ def createItem():
                 "qrHash": qrHash,
                 "time" : strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
             }
-        
+
     transactionDatabase.insert_one(post)
 
     createItemTransaction = GreenBlockInstance.functions.createItem(qrHash, userAddress).buildTransaction({
@@ -103,7 +103,7 @@ def createItem():
 
     txId = w3.eth.sendRawTransaction(signedCreateItem.rawTransaction).hex()
 
-    return jsonify({ 'transactionId': str(txId) }), 201
+    return jsonify({ 'transactionId': str(txId), 'timeCreated' : strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime()) }), 201
 
 @app.route('/getHistory', methods=['POST'])
 def getHistory():
@@ -121,7 +121,13 @@ def getHistory():
 
     itemIds, itemStates = GreenBlockInstance.caller.getHistory(userAddress)
 
-    return jsonify({ 'items': itemIds, 'states': itemStates }), 200
+
+    for i in range(0, len(itemIds)):
+        items = logInDatabase.find({"itemId" : itemIds[i]})
+        itemTime = items[0]['time']
+
+
+    return jsonify({ 'items': itemIds, 'states': itemStates  }), 200
 
 @app.route('/getBalance', methods=['POST'])
 def getBalance():
@@ -143,7 +149,7 @@ def validateItem():
     oauthToken = oauthJson["oauthtoken"]
     qrHash = oauthJson["qrhash"]
     mnemonic = logIn(oauthToken)
-    
+
     w = wallet.create_wallet(network="ETH", seed=mnemonic, children=1)
 
     validateItemTransaction = GreenBlockInstance.functions.validateItem(qrHash).buildTransaction({
