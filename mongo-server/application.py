@@ -103,7 +103,7 @@ def createItem():
 
     txId = w3.eth.sendRawTransaction(signedCreateItem.rawTransaction).hex()
 
-    return jsonify({ 'transactionId': str(txId), 'timeCreated' : strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime()) }), 201
+    return jsonify({ 'transactionId': str(txId), 'timeCreated' : strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())}), 201
 
 @app.route('/getHistory', methods=['POST'])
 def getHistory():
@@ -121,13 +121,14 @@ def getHistory():
 
     itemIds, itemStates = GreenBlockInstance.caller.getHistory(userAddress)
 
-
+    dicArray = []
+    items = logInDatabase.find({"OAuth" : oauthToken})
     for i in range(0, len(itemIds)):
-        items = logInDatabase.find({"itemId" : itemIds[i]})
-        itemTime = items[0]['time']
+        dicObject = {'items' : itemIds[i], 'states' : itemStates[i], 'createTime' : items[i]
+        dicArray.append(dicObject)
 
 
-    return jsonify({ 'items': itemIds, 'states': itemStates  }), 200
+    return jsonify(dicArray), 200
 
 @app.route('/getBalance', methods=['POST'])
 def getBalance():
