@@ -18,7 +18,6 @@ export default function Navbar() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop:25,
     flexDirection:'row',
     backgroundColor: 'black',
     justifyContent: 'space-around',

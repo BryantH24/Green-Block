@@ -1,0 +1,92 @@
+import React, {useState, useEffect} from "react";
+import { Text, View, StyleSheet, Button } from 'react-native';
+import Constants from 'expo-constants';
+import * as Permissions from 'expo-permissions';
+import { BarCodeScanner } from 'expo-barcode-scanner';
+
+export default  BarcodeScannerExample =()=>{
+
+  const [hasCameraPermission, setHasCameraPermission]= useState(true)
+  const [scanned,setScanned] = useState(true)
+  const postAPI= async()=>{
+    try{
+  const url3 = "http://greenblockserverbackend-env-2.am6btzwrqt.us-east-2.elasticbeanstalk.com/createItem"
+  const url4 = "http://greenblockserverbackend-env-2.am6btzwrqt.us-east-2.elasticbeanstalk.com/validateItem"
+  let response = await fetch(url3,{
+    method: 'post',
+    mode: 'no-cors',
+    headers: {
+      'Accept': 'application/json',
+      'Content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      oauthtoken: "sampleOauth8",
+      qrhash: "hash27"
+    })
+    });
+    let data = await response.json();
+    console.log(data);
+  }
+  catch(e){
+    console.log(e)
+  }
+
+}
+
+  useEffect(() => {
+    getPermissionsAsync()
+    postAPI()
+  });
+
+  getPermissionsAsync = async () => {
+    const { status } = await Permissions.askAsync(Permissions.CAMERA);
+  //  this.setState({ hasCameraPermission: status === 'granted' });
+    return true;
+    console.log(hasCameraPermission)
+  }
+    if (hasCameraPermission === null) {
+      console.log('noPermission')
+    }
+    if (scanned === false) {
+      console.log('no Camera')
+    }
+    return (
+      <View>
+        <BarCodeScanner
+          barCodeTypes={[BarCodeScanner.Constants.BarCodeType.qr]}
+          onBarCodeScanned={scanned ? undefined : this.handleBarCodeScanned}
+          style={{width:"100%", height:"100%"}}
+        />
+        <View style={styles.qrCodeContainer}>
+          <View style={styles.qrCodePlacement}></View>
+          <View></View>
+          <View></View>
+        </View>
+      </View>
+    );
+
+  handleBarCodeScanned = ({ type, data }) => {
+    alert(`Bar code with type ${type} and data ${data} has been scanned!`);
+    setScanned(true)
+    setTimeout( () => {
+      setScanned(false)
+}, 3000);
+  };
+}
+
+
+const styles = StyleSheet.create({
+  qrCodeContainer:{
+    width:"40%",
+    height:"20%",
+    position:'absolute',
+    top:'50%',
+    left:'50%'
+  },
+
+  qrCodePlacement:{
+    width:"100%",
+    height:'100%',
+    backgroundColor:'yellow'
+  }
+})
