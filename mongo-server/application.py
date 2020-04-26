@@ -122,9 +122,16 @@ def getHistory():
     itemIds, itemStates = GreenBlockInstance.caller.getHistory(userAddress)
 
     dicArray = []
-    items = logInDatabase.find({"OAuth" : oauthToken})
-    for i in range(0, len(itemIds)):
-        dicObject = {'items' : itemIds[i], 'states' : itemStates[i], 'createTime' : items[i]
+    itemArray = []
+    items = transactionDatabase.find({"OAuth" : oauthToken})
+
+    for i in items: 
+        itemArray.append(i['time'])
+
+    count = min(len(itemArray), len(itemIds))
+
+    for i in range(0, count):
+        dicObject = {'items' : hex(itemIds[i]), 'states' : itemStates[i], 'createTime' : itemArray[i]}
         dicArray.append(dicObject)
 
 
