@@ -22,8 +22,11 @@ def createNewUser(oauthToken):
 def login(oauthToken):
     try:
         user = userDatabase.find({"OAuth" : oauthToken})[0]
+        return "user logged in"
     except IndexError:
         createNewUser(oauthToken)
+        return "user created"
+
 
 def changeUserBalance(oauthToken, changeVal):
     user = userDatabase.find({"OAuth" : oauthToken})[0]
@@ -35,27 +38,26 @@ def changeUserBalance(oauthToken, changeVal):
         'balance': prevBal + changeVal
       }
     }, upsert=False)
-    return True
+    return "user balance changed by " + str(changeVal)
 
 def getUserBalance(oauthToken):
     user = userDatabase.find({"OAuth" : oauthToken})[0]
     if user["balance"] == "":
         return 0
     else:
-        print(user["balance"])
-        return user["balance"]
+        return str(user["balance"])
 
 def getHistory(oauthToken):
     transArr = []
     userHist = transactionDatabase.find({"OAuth" : oauthToken})
     for trans in userHist:
         transArr.append(trans)
-    print(transArr)
+    return transArr
 
 def createItem(oauthToken, qrhash):
     try:
         trans = transactionDatabase.find({"qrhash" : qrhash})[0]
-        return False
+        return "item already created"
     except IndexError:
         post = {
                 "_id" : transactionDatabase.count_documents({}) + 1 ,
@@ -65,8 +67,7 @@ def createItem(oauthToken, qrhash):
                 "status" : "unvalidated"
                 }
         transactionDatabase.insert_one(post)
-        return True
-    # return jsonify({ 'transactionId': str(transactionDatabase.count_documents({}) + 1), 'timeCreated' : strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())}), 201
+        return str(post)
 
 
 def validateItem(qrhash, value):
@@ -74,7 +75,7 @@ def validateItem(qrhash, value):
         trans = transactionDatabase.find({"qrhash" : qrhash})[0]
         if trans['status'] == "validated":
             # bottle has already bene validated
-            return False
+            return "item already validated"
         else:
             transactionDatabase.update_one({
               '_id': trans["_id"]
@@ -84,10 +85,12 @@ def validateItem(qrhash, value):
               }
             }, upsert=False)
             changeUserBalance(trans["OAuth"], value)
+            return "item has been validated"
     except IndexError:
-        return False
+        return "item has not been created"
 
-login("test1")
-createItem("test1", 12)
-validateItem(12, 5)
-getUserBalance("test1")
+print(login("test12"))
+print(createItem("test12", 22))
+print(validateItem(22, 5))
+print(getUserBalance("test12"))
+print(getHistory("test12"))
